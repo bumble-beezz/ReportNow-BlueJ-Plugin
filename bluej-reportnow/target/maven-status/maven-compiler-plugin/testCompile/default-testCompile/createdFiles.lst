@@ -1,0 +1,5 @@
+com\group22\reportnow\export\PdfExportStrategyTest.class
+com\group22\reportnow\listener\CompilationListenerTest.class
+com\group22\reportnow\export\JsonExportStrategyTest.class
+com\group22\reportnow\listener\ExecutionListenerTest.class
+com\group22\reportnow\repository\TelemetryRepositoryTest.class

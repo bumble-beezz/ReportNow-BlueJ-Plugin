@@ -114,6 +114,7 @@
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <javafx.version>17.0.1</javafx.version>
     <junit.version>5.10.0</junit.version>
     <mockito.version>5.5.0</mockito.version>
     <jackson.version>2.16.0</jackson.version>
