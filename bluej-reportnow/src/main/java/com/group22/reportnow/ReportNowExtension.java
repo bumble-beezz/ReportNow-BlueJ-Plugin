@@ -18,6 +18,9 @@ import java.io.File;
 import javafx.scene.control.MenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import com.group22.reportnow.listener.EditorInteractionTracker;
+import com.group22.reportnow.listener.EditorInteractionManager;
+import com.group22.reportnow.listener.EditorPackageListener;
 
 public class ReportNowExtension extends Extension {
 
@@ -29,6 +32,10 @@ public class ReportNowExtension extends Extension {
     private ClassLifecycleListener classListener;
     private String studentId;
 
+    private EditorInteractionTracker editorInteractionTracker;
+    private EditorInteractionManager editorInteractionManager;
+    private EditorPackageListener editorPackageListener;
+    
     @Override public String getName()      { return "ReportNow Telemetry"; }
     @Override public String getVersion()   { return "1.0.0"; }
     @Override public boolean isCompatible() { return true; }
@@ -46,16 +53,28 @@ public class ReportNowExtension extends Extension {
 
         this.compilationListener = new CompilationListener(repository);
         this.executionListener   = new ExecutionListener(repository);
-        this.classListener       = new ClassLifecycleListener(repository);
-        this.projectListener     = new ProjectLifecycleListener(blueJ, repository, classListener);
-        
+
+        this.editorInteractionTracker = new EditorInteractionTracker();
+        this.editorInteractionManager =
+                new EditorInteractionManager(blueJ, editorInteractionTracker);
+        this.editorPackageListener =
+                new EditorPackageListener(editorInteractionManager);
+
+        this.classListener = new ClassLifecycleListener(repository);
+        this.projectListener =
+                new ProjectLifecycleListener(blueJ, repository, classListener);
+
         blueJ.addCompileListener(compilationListener);
         blueJ.addInvocationFinishedListener(executionListener);
         blueJ.addPackageListener(projectListener);
         blueJ.addClassListener(classListener);
 
+        blueJ.addPackageListener(editorPackageListener);
+        editorInteractionManager.scanOpenEditors();
+
         projectListener.startTimer();
         classListener.startTimer();
+
 
         blueJ.setMenuGenerator(new MenuGenerator() {
             @Override
@@ -82,8 +101,13 @@ public class ReportNowExtension extends Extension {
         if (blueJ != null) {
             blueJ.removeCompileListener(compilationListener);
             blueJ.removeInvocationFinishedListener(executionListener);
+
+            blueJ.removePackageListener(editorPackageListener);
+            editorInteractionManager.detachAllListeners();
+
             blueJ.removePackageListener(projectListener);
             blueJ.removeClassListener(classListener);
+
         }
         repository.endSession();
 
