@@ -31,6 +31,14 @@ public class SessionHistoryLoader {
                 System.err.println("[ReportNow] Failed to read history file " + file.getName() + ": " + e.getMessage());
             }
         }
+        //search subfolders
+        File[] subDirs = baseDir.listFiles(File::isDirectory);
+        if (subDirs != null) {
+            for (File dir : subDirs) {
+                history.addAll(loadHistory(dir, currentSessionId));
+            }
+        }
+
         //sort newest first
         history.sort((a, b) -> Long.compare(b.getSessionStartMs(), a.getSessionStartMs()));
         return history;

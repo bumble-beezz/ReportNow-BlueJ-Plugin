@@ -136,14 +136,21 @@ public class ReportNowExtension extends Extension {
             }
             return;
         }
+
+        String projectName = repository.getPrimaryProjectName();
+        File projectDir = new File(baseDir, projectName);
+        if (!projectDir.exists() && !projectDir.mkdirs()) {
+             System.err.println("[ReportNow] could not create project directory.");
+             return;
+        }
         
-        //load past sessions before exporting
+        //load past sessions from all subfolders before exporting
         SessionHistoryLoader loader = new SessionHistoryLoader();
         repository.setPastSessions(loader.loadHistory(baseDir, repository.getSessionId()));
 
         String stamp = String.valueOf(System.currentTimeMillis());
-        File json = new File(baseDir, "reportnow-" + stamp + ".json");
-        File pdf  = new File(baseDir, "reportnow-" + stamp + ".pdf");
+        File json = new File(projectDir, "reportnow-" + stamp + ".json");
+        File pdf  = new File(projectDir, "reportnow-" + stamp + ".pdf");
 
         try {
             ExportContext ctx = new ExportContext();

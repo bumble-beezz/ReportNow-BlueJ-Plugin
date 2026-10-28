@@ -218,8 +218,8 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(t);
     }
 
-    //past Sessions Table
-    private void addHistoryTable(Document doc, TelemetryRepository repo) throws DocumentException {
+    //past sessions Table
+        private void addHistoryTable(Document doc, TelemetryRepository repo) throws DocumentException {
         List<SessionSummary> history = repo.getPastSessions();
         if (history.isEmpty()) return;
 
@@ -227,13 +227,14 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(new Paragraph("Past Sessions", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, new Color(60, 90, 150))));
         doc.add(Chunk.NEWLINE);
 
-        PdfPTable t = new PdfPTable(new float[]{3f, 2f, 2f, 2f, 2f, 2f});
+        PdfPTable t = new PdfPTable(new float[]{2f, 3f, 2f, 2f, 2f, 2f, 2f});
         t.setWidthPercentage(100);
-        header(t, "Date/Time", "Duration", "Compiles", "Success", "Executions", "Active Time");
+        header(t, "Project", "Date/Time", "Duration", "Compiles", "Success", "Executions", "Active Time");
 
         boolean alternate = false;
         for (SessionSummary s : history) {
             Color bg = alternate ? new Color(245, 245, 250) : Color.WHITE;
+            addCell(t, s.getProjectName(), bg); // NEW
             addCell(t, Instant.ofEpochMilli(s.getSessionStartMs()).toString(), bg);
             addCell(t, String.format("%.1f s", s.getSessionDurationMs() / 1000.0), bg);
             addCell(t, String.valueOf(s.getTotalCompilations()), bg);

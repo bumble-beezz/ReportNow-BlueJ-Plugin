@@ -93,7 +93,7 @@ class TelemetryRepositoryTest {
 
     @Test
     void storesAndRetrievesPastSessions() {
-        SessionSummary summary = new SessionSummary("STUDENT", "S1", 1000L, 500L, 1, 1, 0, 0, 500L, 0L);
+        SessionSummary summary = new SessionSummary("STUDENT", "TestProject", "S1", 1000L, 500L, 1, 1, 0, 0, 500L, 0L);
         List<SessionSummary> history = List.of(summary);
         
         repo.setPastSessions(history);

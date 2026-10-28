@@ -106,4 +106,15 @@ public class TelemetryRepository {
     public synchronized long getIdleTimeMs() {
         return Math.max(0L, getSessionDurationMs() - getActiveTimeMs());
     }
+
+    public synchronized String getPrimaryProjectName() {
+        for (TelemetryEvent e : events) {
+            if (e instanceof ProjectEvent pe) {
+                if ("ProjectOpened".equals(pe.getAction()) || "ProjectCreated".equals(pe.getAction())) {
+                    return pe.getProjectName();
+                }
+            }
+        }
+        return "UnknownProject";
+    }
 }

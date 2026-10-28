@@ -25,6 +25,7 @@ class SessionHistoryLoaderTest {
         //create a fake past session JSON file
         Map<String, Object> meta1 = new LinkedHashMap<>();
         meta1.put("student_id", "STUDENT");
+        meta1.put("project_name", "TestProject");
         meta1.put("session_id", "past-session-1");
         meta1.put("session_start_ms", 1000L);
         meta1.put("session_duration_ms", 500L);

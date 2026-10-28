@@ -39,6 +39,7 @@ public class JsonExportStrategy implements ExportStrategy {
     private Map<String, Object> buildMetadata(TelemetryRepository repo) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("student_id",              studentId); 
+        m.put("project_name",            repo.getPrimaryProjectName());
         m.put("session_id",              repo.getSessionId());
         m.put("session_start_ms",        repo.getSessionStartMs());
         m.put("session_duration_ms",     repo.getSessionDurationMs());
