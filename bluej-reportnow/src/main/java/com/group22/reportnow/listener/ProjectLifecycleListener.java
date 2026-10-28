@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import com.group22.reportnow.factory.TelemetryEventFactory;
 import com.group22.reportnow.repository.TelemetryRepository;
@@ -22,14 +23,16 @@ public class ProjectLifecycleListener implements PackageListener {
     private final BlueJ blueJ;
     private final TelemetryRepository repository;
     private final ClassLifecycleListener classListener;
+    private final Consumer<String> onProjectClosing; // NEW callback
     private Map<String, String> projects = new ConcurrentHashMap<>();
     private Map<String, Boolean> openProjects = new ConcurrentHashMap<>();
     private Timer lifecycleTimer;
 
-    public ProjectLifecycleListener(BlueJ blueJ, TelemetryRepository repository, ClassLifecycleListener classListener){
+    public ProjectLifecycleListener(BlueJ blueJ, TelemetryRepository repository, ClassLifecycleListener classListener, Consumer<String> onProjectClosing){
 	    this.blueJ = blueJ;
 	    this.repository = repository;
 	    this.classListener = classListener;
+        this.onProjectClosing = onProjectClosing;
     }
 
     private void recordEvent(String action, String projectName){
@@ -48,11 +51,18 @@ public class ProjectLifecycleListener implements PackageListener {
 
     @Override
     public void packageClosing(PackageEvent event){
-	    System.out.println("BlueJ package is closing");
+	    try {
+            String projectName = event.getPackage().getProject().getName();
+            // Trigger the export for this specific project
+            if (onProjectClosing != null) {
+                onProjectClosing.accept(projectName);
+            }
+        } catch (ProjectNotOpenException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    private synchronized void addProject(BProject project)
-             throws ProjectNotOpenException {
+    private synchronized void addProject(BProject project) throws ProjectNotOpenException {
         String projectName = project.getName();
         File projectFolder = project.getDir();
         String path = projectFolder.getAbsolutePath();
@@ -65,7 +75,7 @@ public class ProjectLifecycleListener implements PackageListener {
         if(openProjects.putIfAbsent(path, true) == null){
             recordEvent("ProjectOpened", projectName);
         }
-            classListener.trackProject(projectFolder, projectName);
+        classListener.trackProject(projectFolder, projectName);
     }
 
     private boolean isNewProject(File projectFolder){
@@ -73,14 +83,11 @@ public class ProjectLifecycleListener implements PackageListener {
             BasicFileAttributes attributes = Files.readAttributes(projectFolder.toPath(), BasicFileAttributes.class);
             long creationTime = attributes.creationTime().toMillis();
             long currentTime = System.currentTimeMillis();
-
-            return creationTime <= currentTime && currentTime - creationTime < 1000L; // Consider it new if created within the last second
+            return creationTime <= currentTime && currentTime - creationTime < 1000L;
         } catch (IOException e){
-            System.out.println(e.getMessage());
             return false;
         }
     }
-
 
     public void recordProjectModified(String projectName){
         repository.addEvent(TelemetryEventFactory.createProjectEvent("ProjectModified", projectName));
@@ -121,7 +128,6 @@ public class ProjectLifecycleListener implements PackageListener {
         }
         checkOpenProjects();
 	    TimerTask task = new TimerTask(){
-
 	    @Override
 	    public void run(){
             try{
@@ -132,12 +138,8 @@ public class ProjectLifecycleListener implements PackageListener {
             }
 	    }
     };
-    
         lifecycleTimer = new Timer("Lifecycle Timer", true);
-        long delay = 1000L;
-        long period = 1000L;
-
-        lifecycleTimer.scheduleAtFixedRate(task,delay,period);
+        lifecycleTimer.scheduleAtFixedRate(task,1000L,1000L);
     }
 
     public synchronized void stopTimer(){
@@ -146,5 +148,4 @@ public class ProjectLifecycleListener implements PackageListener {
             lifecycleTimer = null;
 	    }
     }
-
 }

@@ -34,9 +34,11 @@ import com.lowagie.text.pdf.PdfWriter;
 public class PdfExportStrategy implements ExportStrategy {
 
     private final String studentId;
+    private final String projectName; // NEW
 
-    public PdfExportStrategy(String studentId) {
+    public PdfExportStrategy(String studentId, String projectName) {
         this.studentId = studentId;
+        this.projectName = projectName;
     }
 
     @Override
@@ -64,7 +66,6 @@ public class PdfExportStrategy implements ExportStrategy {
             addActivityTimeline(doc, repo);
             addExecutionTable(doc, repo);
             
-            //add past Sessions to Page 3+
             addHistoryTable(doc, repo);
 
             doc.close();
@@ -79,7 +80,7 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(title);
 
         Paragraph sub = new Paragraph(
-                "Student ID: " + studentId + "   |   Session: " + repo.getSessionId() + "   |   Started: " + Instant.ofEpochMilli(repo.getSessionStartMs()),
+                "Student ID: " + studentId + "   |   Project: " + projectName + "   |   Started: " + Instant.ofEpochMilli(repo.getSessionStartMs()),
                 FontFactory.getFont(FontFactory.HELVETICA, 9, Color.DARK_GRAY));
         sub.setAlignment(Element.ALIGN_CENTER);
         sub.setSpacingAfter(15f);
@@ -180,7 +181,6 @@ public class PdfExportStrategy implements ExportStrategy {
 
         boolean alternate = false;
         for (TelemetryEvent e : repo.getEvents()) {
-            //filter out ProjectModified spam to make the timeline useful
             if (e instanceof ProjectEvent pe && pe.getAction().equals("ProjectModified")) {
                 continue;
             }
@@ -218,17 +218,18 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(t);
     }
 
-        private void addHistoryTable(Document doc, TelemetryRepository repo) throws DocumentException {
+    private void addHistoryTable(Document doc, TelemetryRepository repo) throws DocumentException {
         List<SessionSummary> history = repo.getPastSessions();
         if (history.isEmpty()) return;
 
         doc.newPage();
-        doc.add(new Paragraph("Past Sessions", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, new Color(60, 90, 150))));
+        doc.add(new Paragraph("Past Sessions", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, new Color(60, 90, 150))));
+        doc.add(Chunk.NEWLINE);
         doc.add(Chunk.NEWLINE);
 
         PdfPTable t = new PdfPTable(new float[]{3f, 3f, 2f, 2f, 2f});
         t.setWidthPercentage(100);
-        header(t, "Project", "Date/Time", "Duration", "Compiles (OK/Total)", "Active Time");
+        header(t, "Project", "Date/Time", "Duration", "Compiles (Success/Total)", "Active Time");
 
         boolean alternate = false;
         for (SessionSummary s : history) {

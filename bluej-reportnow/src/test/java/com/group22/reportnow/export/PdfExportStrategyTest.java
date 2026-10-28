@@ -23,7 +23,7 @@ class PdfExportStrategyTest {
         repo.endSession();
 
         File out = tempDir.resolve("report.pdf").toFile();
-        new PdfExportStrategy("TEST_STUDENT").export(repo, out);
+        new PdfExportStrategy("TEST_STUDENT", "TestProject").export(repo, out);
 
         assertTrue(out.exists());
         assertTrue(out.length() > 0);
@@ -35,7 +35,7 @@ class PdfExportStrategyTest {
         repo.endSession();
 
         File out = tempDir.resolve("empty.pdf").toFile();
-        new PdfExportStrategy("TEST_STUDENT").export(repo, out);
+        new PdfExportStrategy("TEST_STUDENT", "TestProject").export(repo, out);
 
         byte[] bytes = Files.readAllBytes(out.toPath());
         assertTrue(bytes.length >= 4);
@@ -50,7 +50,7 @@ class PdfExportStrategyTest {
         TelemetryRepository repo = new TelemetryRepository();
         repo.endSession();
         File out = tempDir.resolve("empty-session.pdf").toFile();
-        assertDoesNotThrow(() -> new PdfExportStrategy("TEST_STUDENT").export(repo, out));
+        assertDoesNotThrow(() -> new PdfExportStrategy("TEST_STUDENT", "TestProject").export(repo, out));
         assertTrue(out.length() > 0);
     }
 }

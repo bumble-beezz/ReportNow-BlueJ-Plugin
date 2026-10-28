@@ -5,23 +5,13 @@ import bluej.extensions2.BPackage;
 import bluej.extensions2.Extension;
 import bluej.extensions2.MenuGenerator;
 import com.group22.reportnow.config.StudentIdManager;
-import com.group22.reportnow.export.ExportContext;
-import com.group22.reportnow.export.ExportException;
-import com.group22.reportnow.export.JsonExportStrategy;
-import com.group22.reportnow.export.PdfExportStrategy;
-import com.group22.reportnow.export.SessionHistoryLoader;
-import com.group22.reportnow.listener.CompilationListener;
-import com.group22.reportnow.listener.ExecutionListener;
-import com.group22.reportnow.listener.ProjectLifecycleListener;
-import com.group22.reportnow.listener.ClassLifecycleListener;
+import com.group22.reportnow.export.*;
+import com.group22.reportnow.listener.*;
 import com.group22.reportnow.repository.TelemetryRepository;
 import java.io.File;
 import javafx.scene.control.MenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import com.group22.reportnow.listener.EditorInteractionTracker;
-import com.group22.reportnow.listener.EditorInteractionManager;
-import com.group22.reportnow.listener.EditorPackageListener;
 
 public class ReportNowExtension extends Extension {
 
@@ -32,6 +22,7 @@ public class ReportNowExtension extends Extension {
     private ProjectLifecycleListener projectListener;
     private ClassLifecycleListener classListener;
     private String studentId;
+    private boolean isShuttingDown = false; // Flag to prevent double export
 
     private EditorInteractionTracker editorInteractionTracker;
     private EditorInteractionManager editorInteractionManager;
@@ -59,11 +50,17 @@ public class ReportNowExtension extends Extension {
         this.editorInteractionManager = new EditorInteractionManager(blueJ, editorInteractionTracker);
         this.editorPackageListener = new EditorPackageListener(editorInteractionManager);
         
-        //connect the editor tracker to the repository for Active Time calculation
         this.repository.setEditorTracker(editorInteractionTracker);
 
         this.classListener = new ClassLifecycleListener(repository);
-        this.projectListener = new ProjectLifecycleListener(blueJ, repository, classListener);
+        
+        //pass the callback to trigger an export when a project closes
+        this.projectListener = new ProjectLifecycleListener(blueJ, repository, classListener, projectName -> {
+            if (!isShuttingDown) {
+                File defaultDir = new File(System.getProperty("user.home"), "reportnow");
+                exportToDirectory(defaultDir, projectName, false);
+            }
+        });
 
         blueJ.addCompileListener(compilationListener);
         blueJ.addInvocationFinishedListener(executionListener);
@@ -90,29 +87,24 @@ public class ReportNowExtension extends Extension {
 
     @Override
     public void terminate() {
-        if (projectListener != null) {
-            projectListener.stopTimer();
-        }
+        isShuttingDown = true; // BlueJ is closing, prevent packageClosing from exporting
 
-        if (classListener != null) {
-            classListener.stopTimer();
-        }
+        if (projectListener != null) projectListener.stopTimer();
+        if (classListener != null) classListener.stopTimer();
 
         if (blueJ != null) {
             blueJ.removeCompileListener(compilationListener);
             blueJ.removeInvocationFinishedListener(executionListener);
-
             blueJ.removePackageListener(editorPackageListener);
             editorInteractionManager.detachAllListeners();
-
             blueJ.removePackageListener(projectListener);
             blueJ.removeClassListener(classListener);
-
         }
         repository.endSession();
 
         File defaultDir = new File(System.getProperty("user.home"), "reportnow");
-        exportToDirectory(defaultDir, false);
+        // Fallback export on full BlueJ shutdown
+        exportToDirectory(defaultDir, repository.getPrimaryProjectName(), false);
 
         System.out.println("[ReportNow] session ended");
     }
@@ -124,11 +116,11 @@ public class ReportNowExtension extends Extension {
 
         if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
             File targetDir = chooser.getSelectedFile();
-            exportToDirectory(targetDir, true);
+            exportToDirectory(targetDir, repository.getPrimaryProjectName(), true);
         }
     }
 
-    private void exportToDirectory(File baseDir, boolean showPopup) {
+    private void exportToDirectory(File baseDir, String projectName, boolean showPopup) {
         if (!baseDir.exists() && !baseDir.mkdirs()) {
             System.err.println("[ReportNow] could not create output directory: " + baseDir.getAbsolutePath());
             if (showPopup) {
@@ -136,17 +128,15 @@ public class ReportNowExtension extends Extension {
             }
             return;
         }
+        
+        SessionHistoryLoader loader = new SessionHistoryLoader();
+        repository.setPastSessions(loader.loadHistory(baseDir, repository.getSessionId()));
 
-        String projectName = repository.getPrimaryProjectName();
         File projectDir = new File(baseDir, projectName);
         if (!projectDir.exists() && !projectDir.mkdirs()) {
              System.err.println("[ReportNow] could not create project directory.");
              return;
         }
-        
-        //load past sessions from all subfolders before exporting
-        SessionHistoryLoader loader = new SessionHistoryLoader();
-        repository.setPastSessions(loader.loadHistory(baseDir, repository.getSessionId()));
 
         String stamp = String.valueOf(System.currentTimeMillis());
         File json = new File(projectDir, "reportnow-" + stamp + ".json");
@@ -157,7 +147,8 @@ public class ReportNowExtension extends Extension {
             ctx.setStrategy(new JsonExportStrategy(studentId));
             ctx.execute(repository, json);
 
-            ctx.setStrategy(new PdfExportStrategy(studentId));
+            //pass projectName to PDF for heading logic
+            ctx.setStrategy(new PdfExportStrategy(studentId, projectName)); 
             ctx.execute(repository, pdf);
 
             System.out.println("[ReportNow] wrote: " + json + " and " + pdf);
@@ -175,23 +166,5 @@ public class ReportNowExtension extends Extension {
                 JOptionPane.showMessageDialog(null, "Export failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-    public void showSummary() {
-        String msg = String.format(
-                "Session: %s%nDuration: %.1f s%nCompilations: %d (%d ok / %d failed)%nExecutions: %d (%d ok / %d failed)",
-                repository.getSessionId(),
-                repository.getSessionDurationMs() / 1000.0,
-                repository.getTotalCompilations(),
-                repository.getSuccessfulCompilations(),
-                repository.getFailedCompilations(),
-                repository.getTotalExecutions(),
-                repository.getSuccessfulExecutions(),
-                repository.getFailedExecutions());
-
-        JOptionPane.showMessageDialog(
-                null, msg,
-                "ReportNow — Session Summary",
-                JOptionPane.INFORMATION_MESSAGE);
     }
 }

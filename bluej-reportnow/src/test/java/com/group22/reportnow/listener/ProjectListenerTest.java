@@ -7,6 +7,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,20 +21,27 @@ import bluej.extensions2.event.PackageEvent;
 import com.group22.reportnow.model.ProjectEvent;
 import com.group22.reportnow.repository.TelemetryRepository;
 
-
 public class ProjectListenerTest {
     private TelemetryRepository repo;
     private ProjectLifecycleListener listener;
     private ClassLifecycleListener classListener;
     private BlueJ blueJ;
     private File testFolder;
+    private Consumer<String> mockCallback;
 
     @BeforeEach
     void setup() throws Exception{
         repo = new TelemetryRepository();
         blueJ = mock(BlueJ.class);
         classListener = mock(ClassLifecycleListener.class);
-        listener = new ProjectLifecycleListener(blueJ, repo, classListener);
+        
+        // Mock the callback consumer
+        @SuppressWarnings("unchecked")
+        Consumer<String> mockCallback = mock(Consumer.class);
+        this.mockCallback = mockCallback;
+
+        // Pass the mockCallback to the new constructor
+        listener = new ProjectLifecycleListener(blueJ, repo, classListener, mockCallback);
 
         testFolder = Files.createTempDirectory("testProject").toFile();
     }
@@ -59,6 +67,19 @@ public class ProjectListenerTest {
         listener.packageOpened(event);
     }
 
+    private void closeProject() throws Exception {
+        BProject project = mock(BProject.class);
+        when(project.getName()).thenReturn("TestProject");
+
+        BPackage bluejPackage = mock(BPackage.class);
+        when(bluejPackage.getProject()).thenReturn(project);
+
+        PackageEvent event = mock(PackageEvent.class);
+        when(event.getPackage()).thenReturn(bluejPackage);
+
+        listener.packageClosing(event);
+    }
+
     private void checkProjects() throws Exception{
         Method method = ProjectLifecycleListener.class.getDeclaredMethod("checkProjects");
         method.setAccessible(true);
@@ -66,7 +87,7 @@ public class ProjectListenerTest {
     }
 
     @Test
-     void projectOpeningIsRecorded() throws Exception {
+    void projectOpeningIsRecorded() throws Exception {
         openProject();
 
         List<ProjectEvent> events = repo.getProjectEvents();
@@ -82,7 +103,7 @@ public class ProjectListenerTest {
     }
 
     @Test
-     void projectModificationIsRecorded() {
+    void projectModificationIsRecorded() {
         listener.recordProjectModified("TestProject");
 
         List<ProjectEvent> events = repo.getProjectEvents();
@@ -153,5 +174,13 @@ public class ProjectListenerTest {
             }
         }
         assertTrue(foundCreation);
+    }
+
+    @Test
+    void projectClosingTriggersExportCallback() throws Exception {
+        closeProject();
+        
+        //verify the mock callback was called with the correct project name
+        verify(mockCallback, times(1)).accept("TestProject");
     }
 }
