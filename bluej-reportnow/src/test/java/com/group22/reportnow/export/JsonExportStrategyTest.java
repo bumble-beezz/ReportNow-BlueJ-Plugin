@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group22.reportnow.factory.TelemetryEventFactory;
 import com.group22.reportnow.model.CompilationError;
+import com.group22.reportnow.model.SessionSummary;
 import com.group22.reportnow.repository.TelemetryRepository;
 import java.io.File;
 import java.nio.file.Path;
@@ -26,6 +27,9 @@ class JsonExportStrategyTest {
         repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 50, null, null));
         repo.endSession();
 
+        SessionSummary past = new SessionSummary("TEST_STUDENT", "past-session-id", 1000L, 500L, 1, 1, 0, 1, 300L, 200L);
+        repo.setPastSessions(List.of(past));
+
         File out = tempDir.resolve("session.json").toFile();
         new JsonExportStrategy("TEST_STUDENT").export(repo, out);
 
@@ -45,6 +49,11 @@ class JsonExportStrategyTest {
         JsonNode events = root.get("events");
         assertNotNull(events);
         assertEquals(3, events.size());
+
+        JsonNode pastSessions = root.get("past_sessions");
+        assertNotNull(pastSessions);
+        assertEquals(1, pastSessions.size());
+        assertEquals("past-session-id", pastSessions.get(0).get("session_id").asText());
     }
 
     @Test

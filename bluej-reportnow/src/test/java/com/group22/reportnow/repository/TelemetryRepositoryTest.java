@@ -1,6 +1,7 @@
 package com.group22.reportnow.repository;
 
 import com.group22.reportnow.factory.TelemetryEventFactory;
+import com.group22.reportnow.model.SessionSummary;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,5 +89,17 @@ class TelemetryRepositoryTest {
         long first = repo.getSessionDurationMs();
         long second = repo.getSessionDurationMs();
         assertEquals(first, second);
+    }
+
+    @Test
+    void storesAndRetrievesPastSessions() {
+        SessionSummary summary = new SessionSummary("STUDENT", "S1", 1000L, 500L, 1, 1, 0, 0, 500L, 0L);
+        List<SessionSummary> history = List.of(summary);
+        
+        repo.setPastSessions(history);
+        
+        assertNotNull(repo.getPastSessions());
+        assertEquals(1, repo.getPastSessions().size());
+        assertEquals("S1", repo.getPastSessions().get(0).getSessionId());
     }
 }

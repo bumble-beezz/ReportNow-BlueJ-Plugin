@@ -16,6 +16,22 @@ public class SessionSummary {
     @JsonProperty("active_time_ms") private long activeTimeMs;
     @JsonProperty("idle_time_ms") private long idleTimeMs;
 
+    public SessionSummary() {}
+    public SessionSummary(String studentId, String sessionId, long sessionStartMs, long sessionDurationMs,
+                          int totalCompilations, int successfulCompilations, int failedCompilations,
+                          int totalExecutionAttempts, long activeTimeMs, long idleTimeMs) {
+        this.studentId = studentId;
+        this.sessionId = sessionId;
+        this.sessionStartMs = sessionStartMs;
+        this.sessionDurationMs = sessionDurationMs;
+        this.totalCompilations = totalCompilations;
+        this.successfulCompilations = successfulCompilations;
+        this.failedCompilations = failedCompilations;
+        this.totalExecutionAttempts = totalExecutionAttempts;
+        this.activeTimeMs = activeTimeMs;
+        this.idleTimeMs = idleTimeMs;
+    }
+
     public String getStudentId() { return studentId; }
     public String getSessionId() { return sessionId; }
     public long getSessionStartMs() { return sessionStartMs; }

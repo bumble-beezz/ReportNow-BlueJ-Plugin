@@ -174,15 +174,20 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(new Paragraph("Activity Timeline", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, new Color(60, 90, 150))));
         doc.add(Chunk.NEWLINE);
 
-        PdfPTable t = new PdfPTable(new float[]{3f, 2f, 6f});
+        PdfPTable t = new PdfPTable(new float[]{3f, 3f, 6f});
         t.setWidthPercentage(100);
         header(t, "Time", "Type", "Detail");
 
         boolean alternate = false;
         for (TelemetryEvent e : repo.getEvents()) {
+            //filter out ProjectModified spam to make the timeline useful
+            if (e instanceof ProjectEvent pe && pe.getAction().equals("ProjectModified")) {
+                continue;
+            }
+
             Color bg = alternate ? new Color(245, 245, 250) : Color.WHITE;
             addCell(t, Instant.ofEpochMilli(e.getTimestampMs()).toString(), bg);
-            addCell(t, e.getType(), bg);
+            addCell(t, getFriendlyType(e), bg);
             addCell(t, describe(e), bg);
             alternate = !alternate;
         }
@@ -240,20 +245,31 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(t);
     }
 
+    //names for the table
+    private String getFriendlyType(TelemetryEvent e) {
+        if (e instanceof CompilationEvent) return "Compile";
+        if (e instanceof ExecutionEvent) return "Run";
+        if (e instanceof ProjectEvent) return "Project";
+        if (e instanceof ClassEvent) return "Class";
+        return e.getType();
+    }
+
     private String describe(TelemetryEvent e) {
         if (e instanceof CompilationEvent ce) {
-            if (ce.isSuccess()) return "Compile OK (" + ce.getDurationMs() + " ms)";
+            if (ce.isSuccess()) return "Success (" + ce.getDurationMs() + " ms)";
             CompilationError first = ce.getErrors().isEmpty() ? null : ce.getErrors().get(0);
-            return "Compile FAILED" + (first == null ? "" : " — " + first.getFileName() + ":" + first.getLineNumber());
+            return "Failed" + (first == null ? "" : " — " + first.getFileName() + ":" + first.getLineNumber());
         }
         if (e instanceof ExecutionEvent ee) {
-            return ee.isSuccess() ? "Run finished (" + ee.getDurationMs() + " ms)" : "Run FAILED — " + ee.getRuntimeException();
+            return ee.isSuccess() ? "Finished (" + ee.getDurationMs() + " ms)" : "Failed — " + ee.getRuntimeException();
         }
         if (e instanceof ProjectEvent pe) {
-            return pe.getAction() + " — " + pe.getProjectName();
+            return pe.getAction().replace("Project", "") + " — " + pe.getProjectName();
         }
         if (e instanceof ClassEvent ce) {
-            return ce.getAction() + " — " + ce.getClassName() + " (" + ce.getProjectName() + ")";
+            //clean up the string to say "Created: Student.java"
+            String cleanAction = ce.getAction().replace("Class", "").replace("Project", ""); 
+            return cleanAction + ": " + ce.getClassName();
         }
         return e.getType();
     }
