@@ -18,8 +18,8 @@ class PdfExportStrategyTest {
     @Test
     void exportProducesNonEmptyPdfFile() throws Exception {
         TelemetryRepository repo = new TelemetryRepository();
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 100, List.of()));
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 50, null, null));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 100, List.of()));
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",true, 50, null, null));
         repo.endSession();
 
         File out = tempDir.resolve("report.pdf").toFile();
@@ -50,7 +50,7 @@ class PdfExportStrategyTest {
         TelemetryRepository repo = new TelemetryRepository();
         repo.endSession();
         File out = tempDir.resolve("empty-session.pdf").toFile();
-        assertDoesNotThrow(() -> new PdfExportStrategy("TEST_STUDENT", "TestProject").export(repo, out));
+        assertDoesNotThrow(() -> new PdfExportStrategy("TestProject","TEST_STUDENT").export(repo, out));
         assertTrue(out.length() > 0);
     }
 }

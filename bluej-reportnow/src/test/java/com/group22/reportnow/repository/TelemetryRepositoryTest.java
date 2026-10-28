@@ -27,9 +27,9 @@ class TelemetryRepositoryTest {
 
     @Test
     void tracksCompilationStatistics() {
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 100, List.of()));
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(false, 200, List.of()));
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 50, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 100, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",false, 200, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 50, List.of()));
 
         assertEquals(3, repo.getTotalCompilations());
         assertEquals(2, repo.getSuccessfulCompilations());
@@ -38,8 +38,8 @@ class TelemetryRepositoryTest {
 
     @Test
     void tracksExecutionStatistics() {
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 100, null, null));
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(false, 150, "NullPointerException", null));
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",true, 100, null, null));
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",false, 150, "NullPointerException", null));
 
         assertEquals(2, repo.getTotalExecutions());
         assertEquals(1, repo.getSuccessfulExecutions());
@@ -48,16 +48,16 @@ class TelemetryRepositoryTest {
 
     @Test
     void activeTimeSumsCompileAndExecDurations() {
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 100, List.of()));
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(false, 200, List.of()));
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 50, null, null));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 100, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",false, 200, List.of()));
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",true, 50, null, null));
 
         assertEquals(350, repo.getActiveTimeMs());
     }
 
     @Test
     void idleTimeIsPositiveWhenSessionIsLongerThanActive() throws InterruptedException {
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 5, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 5, List.of()));
         Thread.sleep(50);
         repo.endSession();
         assertTrue(repo.getIdleTimeMs() > 0);
@@ -65,7 +65,7 @@ class TelemetryRepositoryTest {
 
     @Test
     void idleTimeIsClampedToZeroWhenActiveExceedsDuration() {
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 10_000, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 10_000, List.of()));
         repo.endSession();
         assertEquals(0, repo.getIdleTimeMs());
     }
@@ -78,7 +78,7 @@ class TelemetryRepositoryTest {
 
     @Test
     void getEventsReturnsImmutableCopy() {
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 0, null, null));
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",true, 0, null, null));
         List<?> snapshot = repo.getEvents();
         assertThrows(UnsupportedOperationException.class, snapshot::clear);
     }

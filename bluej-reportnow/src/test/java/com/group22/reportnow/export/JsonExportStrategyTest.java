@@ -21,10 +21,10 @@ class JsonExportStrategyTest {
     @Test
     void exportProducesValidJsonWithMetadata() throws Exception {
         TelemetryRepository repo = new TelemetryRepository();
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(true, 100, List.of()));
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(false, 200,
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",true, 100, List.of()));
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",false, 200,
                 List.of(new CompilationError("Foo.java", 15, "ERROR", "cannot find symbol"))));
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 50, null, null));
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",true, 50, null, null));
         repo.endSession();
 
         SessionSummary past = new SessionSummary("TEST_STUDENT", "TestProject", "past-session-id", 1000L, 500L, 1, 1, 0, 1, 300L, 200L);
@@ -59,7 +59,7 @@ class JsonExportStrategyTest {
     @Test
     void compilationEventsIncludeErrorsArray() throws Exception {
         TelemetryRepository repo = new TelemetryRepository();
-        repo.addEvent(TelemetryEventFactory.createCompilationEvent(false, 200,
+        repo.addEvent(TelemetryEventFactory.createCompilationEvent("TestProject",false, 200,
                 List.of(
                         new CompilationError("A.java", 5, "ERROR", "boom"),
                         new CompilationError("B.java", 10, "WARNING", "unused"))));
@@ -80,7 +80,7 @@ class JsonExportStrategyTest {
     @Test
     void executionEventsIncludeExceptionField() throws Exception {
         TelemetryRepository repo = new TelemetryRepository();
-        repo.addEvent(TelemetryEventFactory.createExecutionEvent(false, 150,
+        repo.addEvent(TelemetryEventFactory.createExecutionEvent("TestProject",false, 150,
                 "java.lang.NullPointerException: boom", null));
 
         File out = tempDir.resolve("exec.json").toFile();

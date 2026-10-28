@@ -4,14 +4,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ExecutionEvent extends TelemetryEvent {
 
+    @JsonProperty("project_name")       private final String projectName;
     @JsonProperty("success")            private final boolean success;
     @JsonProperty("duration_ms")        private final long    durationMs;
     @JsonProperty("runtime_exception")  private final String  runtimeException;
     @JsonProperty("console_output")     private final String  consoleOutput;
 
-    public ExecutionEvent(long timestampMs, boolean success, long durationMs, 
+    public ExecutionEvent(long timestampMs, String projectName, boolean success, long durationMs, 
                           String runtimeException, String consoleOutput) {
         super(timestampMs);
+        this.projectName      = projectName;
         this.success          = success;
         this.durationMs       = durationMs;
         this.runtimeException = runtimeException;
@@ -20,6 +22,7 @@ public class ExecutionEvent extends TelemetryEvent {
 
     @Override public String getType() { return "EXECUTION"; }
 
+    public String getProjectName() { return projectName; }
     public boolean isSuccess()            { return success; }
     public long    getDurationMs()        { return durationMs; }
     public String  getRuntimeException()  { return runtimeException; }

@@ -34,7 +34,7 @@ import com.lowagie.text.pdf.PdfWriter;
 public class PdfExportStrategy implements ExportStrategy {
 
     private final String studentId;
-    private final String projectName; // NEW
+    private final String projectName;
 
     public PdfExportStrategy(String studentId, String projectName) {
         this.studentId = studentId;
@@ -181,9 +181,16 @@ public class PdfExportStrategy implements ExportStrategy {
 
         boolean alternate = false;
         for (TelemetryEvent e : repo.getEvents()) {
+            // Filter out ProjectModified spam
             if (e instanceof ProjectEvent pe && pe.getAction().equals("ProjectModified")) {
                 continue;
             }
+
+            //filter by project name
+            if (e instanceof ProjectEvent pe && !pe.getProjectName().equals(projectName)) continue;
+            if (e instanceof ClassEvent ce && !ce.getProjectName().equals(projectName)) continue;
+            if (e instanceof CompilationEvent ce && !ce.getProjectName().equals(projectName)) continue;
+            if (e instanceof ExecutionEvent ee && !ee.getProjectName().equals(projectName)) continue;
 
             Color bg = alternate ? new Color(245, 245, 250) : Color.WHITE;
             addCell(t, Instant.ofEpochMilli(e.getTimestampMs()).toString(), bg);

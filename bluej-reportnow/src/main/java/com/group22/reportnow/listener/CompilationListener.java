@@ -18,7 +18,7 @@ public class CompilationListener implements CompileListener {
 
     public CompilationListener(TelemetryRepository repository) {
         this.repository = repository;
-        this.errorParser = new CompilationErrorParser(); // Initialized parser
+        this.errorParser = new CompilationErrorParser();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class CompilationListener implements CompileListener {
     public void compileSucceeded(CompileEvent event) {
         long duration = System.currentTimeMillis() - startTimeMs;
         repository.addEvent(TelemetryEventFactory.createCompilationEvent(
-                true, duration, new ArrayList<>()));
+                repository.getPrimaryProjectName(), true, duration, new ArrayList<>()));
         pendingErrors.clear();
     }
 
@@ -49,23 +49,19 @@ public class CompilationListener implements CompileListener {
     public void compileFailed(CompileEvent event) {
         long duration = System.currentTimeMillis() - startTimeMs;
         repository.addEvent(TelemetryEventFactory.createCompilationEvent(
-                false, duration, new ArrayList<>(pendingErrors)));
+                repository.getPrimaryProjectName(), false, duration, new ArrayList<>(pendingErrors)));
         pendingErrors.clear();
     }
 
     private void addCompilationMessage(CompileEvent event, String severity) {
         String rawMsg = event.getErrorMessage();
-        
-        //try parsing multi-line raw output first
         List<CompilationError> parsed = errorParser.parse(rawMsg);
         
         if (!parsed.isEmpty()) {
             pendingErrors.addAll(parsed);
         } else {
-            //fallback for single-error events (or BlueJ GUI errors)
             pendingErrors.add(TelemetryEventFactory.createCompilationError(
-                    event.getFiles().length > 0
-                            ? event.getFiles()[0].getName() : "unknown",
+                    event.getFiles().length > 0 ? event.getFiles()[0].getName() : "unknown",
                     event.getErrorLineNumber(),
                     severity,
                     rawMsg));

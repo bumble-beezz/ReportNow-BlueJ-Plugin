@@ -7,15 +7,16 @@ import java.util.List;
 
 public class CompilationEvent extends TelemetryEvent {
 
+    @JsonProperty("project_name") private final String projectName;
     @JsonProperty("success")     private final boolean success;
     @JsonProperty("duration_ms") private final long    durationMs;
     @JsonProperty("errors")      private final List<CompilationError> errors;
 
-    public CompilationEvent(long timestampMs,
-                            boolean success,
-                            long durationMs,
+    public CompilationEvent(long timestampMs, String projectName,
+                            boolean success, long durationMs,
                             List<CompilationError> errors) {
         super(timestampMs);
+        this.projectName = projectName;
         this.success    = success;
         this.durationMs = durationMs;
         this.errors     = errors == null
@@ -25,6 +26,7 @@ public class CompilationEvent extends TelemetryEvent {
 
     @Override public String getType() { return "COMPILATION"; }
 
+    public String getProjectName() { return projectName; }
     public boolean isSuccess()           { return success; }
     public long    getDurationMs()       { return durationMs; }
     public List<CompilationError> getErrors() { return errors; }
