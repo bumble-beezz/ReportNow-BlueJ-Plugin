@@ -16,6 +16,9 @@ import java.io.File;
 import javafx.scene.control.MenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import com.group22.reportnow.listener.EditorInteractionTracker;
+import com.group22.reportnow.listener.EditorInteractionManager;
+import com.group22.reportnow.listener.EditorPackageListener;
 
 public class ReportNowExtension extends Extension {
 
@@ -25,6 +28,10 @@ public class ReportNowExtension extends Extension {
     private ExecutionListener executionListener;
     private String studentId;
 
+    private EditorInteractionTracker editorInteractionTracker;
+    private EditorInteractionManager editorInteractionManager;
+    private EditorPackageListener editorPackageListener;
+    
     @Override public String getName()      { return "ReportNow Telemetry"; }
     @Override public String getVersion()   { return "1.0.0"; }
     @Override public boolean isCompatible() { return true; }
@@ -42,9 +49,18 @@ public class ReportNowExtension extends Extension {
 
         this.compilationListener = new CompilationListener(repository);
         this.executionListener   = new ExecutionListener(repository);
+        this.editorInteractionTracker = new EditorInteractionTracker();
+        this.editorInteractionManager =
+                new EditorInteractionManager(blueJ, editorInteractionTracker);
+        this.editorPackageListener =
+                new EditorPackageListener(editorInteractionManager);
+
 
         blueJ.addCompileListener(compilationListener);
         blueJ.addInvocationFinishedListener(executionListener);
+        blueJ.addPackageListener(editorPackageListener);
+        editorInteractionManager.scanOpenEditors();
+
         blueJ.setMenuGenerator(new MenuGenerator() {
             @Override
             public MenuItem getToolsMenuItem(BPackage bp) {
@@ -62,6 +78,8 @@ public class ReportNowExtension extends Extension {
         if (blueJ != null) {
             blueJ.removeCompileListener(compilationListener);
             blueJ.removeInvocationFinishedListener(executionListener);
+            blueJ.removePackageListener(editorPackageListener);
+            editorInteractionManager.detachAllListeners();
         }
         repository.endSession();
 
