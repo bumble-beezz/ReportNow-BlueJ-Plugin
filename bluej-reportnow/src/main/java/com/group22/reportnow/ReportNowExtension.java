@@ -9,6 +9,7 @@ import com.group22.reportnow.export.ExportContext;
 import com.group22.reportnow.export.ExportException;
 import com.group22.reportnow.export.JsonExportStrategy;
 import com.group22.reportnow.export.PdfExportStrategy;
+import com.group22.reportnow.export.SessionHistoryLoader;
 import com.group22.reportnow.listener.CompilationListener;
 import com.group22.reportnow.listener.ExecutionListener;
 import com.group22.reportnow.listener.ProjectLifecycleListener;
@@ -55,14 +56,14 @@ public class ReportNowExtension extends Extension {
         this.executionListener   = new ExecutionListener(repository);
 
         this.editorInteractionTracker = new EditorInteractionTracker();
-        this.editorInteractionManager =
-                new EditorInteractionManager(blueJ, editorInteractionTracker);
-        this.editorPackageListener =
-                new EditorPackageListener(editorInteractionManager);
+        this.editorInteractionManager = new EditorInteractionManager(blueJ, editorInteractionTracker);
+        this.editorPackageListener = new EditorPackageListener(editorInteractionManager);
+        
+        //connect the editor tracker to the repository for Active Time calculation
+        this.repository.setEditorTracker(editorInteractionTracker);
 
         this.classListener = new ClassLifecycleListener(repository);
-        this.projectListener =
-                new ProjectLifecycleListener(blueJ, repository, classListener);
+        this.projectListener = new ProjectLifecycleListener(blueJ, repository, classListener);
 
         blueJ.addCompileListener(compilationListener);
         blueJ.addInvocationFinishedListener(executionListener);
@@ -74,7 +75,6 @@ public class ReportNowExtension extends Extension {
 
         projectListener.startTimer();
         classListener.startTimer();
-
 
         blueJ.setMenuGenerator(new MenuGenerator() {
             @Override
@@ -136,6 +136,10 @@ public class ReportNowExtension extends Extension {
             }
             return;
         }
+        
+        //load past sessions before exporting
+        SessionHistoryLoader loader = new SessionHistoryLoader();
+        repository.setPastSessions(loader.loadHistory(baseDir, repository.getSessionId()));
 
         String stamp = String.valueOf(System.currentTimeMillis());
         File json = new File(baseDir, "reportnow-" + stamp + ".json");

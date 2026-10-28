@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.group22.reportnow.repository.TelemetryRepositoryTest
 -------------------------------------------------------------------------------
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.096 s -- in com.group22.reportnow.repository.TelemetryRepositoryTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.062 s -- in com.group22.reportnow.repository.TelemetryRepositoryTest

@@ -1,16 +1,13 @@
 package com.group22.reportnow.export;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.group22.reportnow.repository.TelemetryRepository;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * serialises the entire session as a JSON document with metadata + events.
- * the polymorphic event hierarchy is handled by Jackson with @JsonSubTypes.
- */
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.group22.reportnow.repository.TelemetryRepository;
+
 public class JsonExportStrategy implements ExportStrategy {
 
     private final ObjectMapper mapper;
@@ -27,6 +24,12 @@ public class JsonExportStrategy implements ExportStrategy {
             Map<String, Object> root = new LinkedHashMap<>();
             root.put("session_metadata", buildMetadata(repo));
             root.put("events",           repo.getEvents());
+            
+            //add past sessions if any exist
+            if (!repo.getPastSessions().isEmpty()) {
+                root.put("past_sessions", repo.getPastSessions());
+            }
+            
             mapper.writeValue(file, root);
         } catch (Exception e) {
             throw new ExportException("JSON export failed", e);
