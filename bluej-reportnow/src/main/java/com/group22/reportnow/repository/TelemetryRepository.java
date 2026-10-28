@@ -108,13 +108,14 @@ public class TelemetryRepository {
     }
 
     public synchronized String getPrimaryProjectName() {
+        String latestProject = "UnknownProject";
         for (TelemetryEvent e : events) {
             if (e instanceof ProjectEvent pe) {
                 if ("ProjectOpened".equals(pe.getAction()) || "ProjectCreated".equals(pe.getAction())) {
-                    return pe.getProjectName();
+                    latestProject = pe.getProjectName(); // Keeps updating to the newest one
                 }
             }
         }
-        return "UnknownProject";
+        return latestProject;
     }
 }
