@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SessionSummary {
     @JsonProperty("student_id") private String studentId;
-    @JsonProperty("project_name") private String projectName; // NEW
+    @JsonProperty("project_name") private String projectName;
     @JsonProperty("session_id") private String sessionId;
     @JsonProperty("session_start_ms") private long sessionStartMs;
     @JsonProperty("session_duration_ms") private long sessionDurationMs;
@@ -35,8 +35,12 @@ public class SessionSummary {
         this.idleTimeMs = idleTimeMs;
     }
 
+    //dallback for older JSON files that don't have the project_name field
+    public String getProjectName() { 
+        return projectName == null || projectName.isBlank() ? "Unknown Project" : projectName; 
+    }
+
     public String getStudentId() { return studentId; }
-    public String getProjectName() { return projectName; }
     public String getSessionId() { return sessionId; }
     public long getSessionStartMs() { return sessionStartMs; }
     public long getSessionDurationMs() { return sessionDurationMs; }

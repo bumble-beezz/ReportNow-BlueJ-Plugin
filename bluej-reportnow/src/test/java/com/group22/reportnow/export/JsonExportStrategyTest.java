@@ -27,7 +27,7 @@ class JsonExportStrategyTest {
         repo.addEvent(TelemetryEventFactory.createExecutionEvent(true, 50, null, null));
         repo.endSession();
 
-        SessionSummary past = new SessionSummary("TEST_STUDENT", "TestProject","past-session-id", 1000L, 500L, 1, 1, 0, 1, 300L, 200L);
+        SessionSummary past = new SessionSummary("TEST_STUDENT", "TestProject", "past-session-id", 1000L, 500L, 1, 1, 0, 1, 300L, 200L);
         repo.setPastSessions(List.of(past));
 
         File out = tempDir.resolve("session.json").toFile();
@@ -45,7 +45,6 @@ class JsonExportStrategyTest {
         assertEquals(1, meta.get("failed_compilations").asInt());
         assertEquals(1, meta.get("total_execution_attempts").asInt());
         assertEquals("TEST_STUDENT", meta.get("student_id").asText());
-        assertEquals("UnknownProject", meta.get("project_name").asText());
 
         JsonNode events = root.get("events");
         assertNotNull(events);

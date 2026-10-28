@@ -174,7 +174,7 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(new Paragraph("Activity Timeline", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, new Color(60, 90, 150))));
         doc.add(Chunk.NEWLINE);
 
-        PdfPTable t = new PdfPTable(new float[]{3f, 3f, 6f});
+        PdfPTable t = new PdfPTable(new float[]{3f, 2f, 6f});
         t.setWidthPercentage(100);
         header(t, "Time", "Type", "Detail");
 
@@ -218,13 +218,12 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(t);
     }
 
-    //past sessions Table
-        private void addHistoryTable(Document doc, TelemetryRepository repo) throws DocumentException {
+    private void addHistoryTable(Document doc, TelemetryRepository repo) throws DocumentException {
         List<SessionSummary> history = repo.getPastSessions();
         if (history.isEmpty()) return;
 
         doc.newPage();
-        doc.add(new Paragraph("Past Sessions", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, new Color(60, 90, 150))));
+        doc.add(new Paragraph("Past Sessions", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, new Color(60, 90, 150))));
         doc.add(Chunk.NEWLINE);
 
         PdfPTable t = new PdfPTable(new float[]{2f, 3f, 2f, 2f, 2f, 2f, 2f});
@@ -234,7 +233,7 @@ public class PdfExportStrategy implements ExportStrategy {
         boolean alternate = false;
         for (SessionSummary s : history) {
             Color bg = alternate ? new Color(245, 245, 250) : Color.WHITE;
-            addCell(t, s.getProjectName(), bg); // NEW
+            addCell(t, s.getProjectName(), bg); 
             addCell(t, Instant.ofEpochMilli(s.getSessionStartMs()).toString(), bg);
             addCell(t, String.format("%.1f s", s.getSessionDurationMs() / 1000.0), bg);
             addCell(t, String.valueOf(s.getTotalCompilations()), bg);
@@ -246,7 +245,6 @@ public class PdfExportStrategy implements ExportStrategy {
         doc.add(t);
     }
 
-    //names for the table
     private String getFriendlyType(TelemetryEvent e) {
         if (e instanceof CompilationEvent) return "Compile";
         if (e instanceof ExecutionEvent) return "Run";
@@ -268,7 +266,6 @@ public class PdfExportStrategy implements ExportStrategy {
             return pe.getAction().replace("Project", "") + " — " + pe.getProjectName();
         }
         if (e instanceof ClassEvent ce) {
-            //clean up the string to say "Created: Student.java"
             String cleanAction = ce.getAction().replace("Class", "").replace("Project", ""); 
             return cleanAction + ": " + ce.getClassName();
         }
