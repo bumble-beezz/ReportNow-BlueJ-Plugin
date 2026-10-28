@@ -3,6 +3,8 @@ package com.group22.reportnow.repository;
 import com.group22.reportnow.model.CompilationEvent;
 import com.group22.reportnow.model.ExecutionEvent;
 import com.group22.reportnow.model.TelemetryEvent;
+import com.group22.reportnow.model.ClassEvent;
+import com.group22.reportnow.model.ProjectEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +27,26 @@ public class TelemetryRepository {
     public TelemetryRepository() {
         this.sessionId      = UUID.randomUUID().toString();
         this.sessionStartMs = System.currentTimeMillis();
+    }
+
+    public synchronized List<ProjectEvent> getProjectEvents(){
+        List<ProjectEvent> projectEvents = new ArrayList<>();
+        for(TelemetryEvent event : events){
+            if(event instanceof ProjectEvent){
+                projectEvents.add((ProjectEvent) event);
+            }
+        }
+        return projectEvents;
+    }
+
+    public synchronized List<ClassEvent> getClassEvents(){
+        List<ClassEvent> classEvents = new ArrayList<>();
+        for(TelemetryEvent event : events){
+            if(event instanceof ClassEvent){
+                classEvents.add((ClassEvent) event);
+            }
+        }
+        return classEvents;
     }
 
     public synchronized void addEvent(TelemetryEvent event) {

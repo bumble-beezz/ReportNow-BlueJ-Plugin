@@ -11,6 +11,8 @@ import com.group22.reportnow.export.JsonExportStrategy;
 import com.group22.reportnow.export.PdfExportStrategy;
 import com.group22.reportnow.listener.CompilationListener;
 import com.group22.reportnow.listener.ExecutionListener;
+import com.group22.reportnow.listener.ProjectLifecycleListener;
+import com.group22.reportnow.listener.ClassLifecycleListener;
 import com.group22.reportnow.repository.TelemetryRepository;
 import java.io.File;
 import javafx.scene.control.MenuItem;
@@ -26,6 +28,8 @@ public class ReportNowExtension extends Extension {
     private TelemetryRepository repository;
     private CompilationListener compilationListener;
     private ExecutionListener executionListener;
+    private ProjectLifecycleListener projectListener;
+    private ClassLifecycleListener classListener;
     private String studentId;
 
     private EditorInteractionTracker editorInteractionTracker;
@@ -49,17 +53,28 @@ public class ReportNowExtension extends Extension {
 
         this.compilationListener = new CompilationListener(repository);
         this.executionListener   = new ExecutionListener(repository);
+
         this.editorInteractionTracker = new EditorInteractionTracker();
         this.editorInteractionManager =
                 new EditorInteractionManager(blueJ, editorInteractionTracker);
         this.editorPackageListener =
                 new EditorPackageListener(editorInteractionManager);
 
+        this.classListener = new ClassLifecycleListener(repository);
+        this.projectListener =
+                new ProjectLifecycleListener(blueJ, repository, classListener);
 
         blueJ.addCompileListener(compilationListener);
         blueJ.addInvocationFinishedListener(executionListener);
+        blueJ.addPackageListener(projectListener);
+        blueJ.addClassListener(classListener);
+
         blueJ.addPackageListener(editorPackageListener);
         editorInteractionManager.scanOpenEditors();
+
+        projectListener.startTimer();
+        classListener.startTimer();
+
 
         blueJ.setMenuGenerator(new MenuGenerator() {
             @Override
@@ -75,11 +90,24 @@ public class ReportNowExtension extends Extension {
 
     @Override
     public void terminate() {
+        if (projectListener != null) {
+            projectListener.stopTimer();
+        }
+
+        if (classListener != null) {
+            classListener.stopTimer();
+        }
+
         if (blueJ != null) {
             blueJ.removeCompileListener(compilationListener);
             blueJ.removeInvocationFinishedListener(executionListener);
+
             blueJ.removePackageListener(editorPackageListener);
             editorInteractionManager.detachAllListeners();
+
+            blueJ.removePackageListener(projectListener);
+            blueJ.removeClassListener(classListener);
+
         }
         repository.endSession();
 
