@@ -11,6 +11,8 @@ import com.group22.reportnow.export.JsonExportStrategy;
 import com.group22.reportnow.export.PdfExportStrategy;
 import com.group22.reportnow.listener.CompilationListener;
 import com.group22.reportnow.listener.ExecutionListener;
+import com.group22.reportnow.listener.ProjectLifecycleListener;
+import com.group22.reportnow.listener.ClassLifecycleListener;
 import com.group22.reportnow.repository.TelemetryRepository;
 import java.io.File;
 import javafx.scene.control.MenuItem;
@@ -23,6 +25,8 @@ public class ReportNowExtension extends Extension {
     private TelemetryRepository repository;
     private CompilationListener compilationListener;
     private ExecutionListener executionListener;
+    private ProjectLifecycleListener projectListener;
+    private ClassLifecycleListener classListener;
     private String studentId;
 
     @Override public String getName()      { return "ReportNow Telemetry"; }
@@ -42,9 +46,17 @@ public class ReportNowExtension extends Extension {
 
         this.compilationListener = new CompilationListener(repository);
         this.executionListener   = new ExecutionListener(repository);
-
+        this.classListener       = new ClassLifecycleListener(repository);
+        this.projectListener     = new ProjectLifecycleListener(blueJ, repository, classListener);
+        
         blueJ.addCompileListener(compilationListener);
         blueJ.addInvocationFinishedListener(executionListener);
+        blueJ.addPackageListener(projectListener);
+        blueJ.addClassListener(classListener);
+
+        projectListener.startTimer();
+        classListener.startTimer();
+
         blueJ.setMenuGenerator(new MenuGenerator() {
             @Override
             public MenuItem getToolsMenuItem(BPackage bp) {
@@ -59,9 +71,19 @@ public class ReportNowExtension extends Extension {
 
     @Override
     public void terminate() {
+        if (projectListener != null) {
+            projectListener.stopTimer();
+        }
+
+        if (classListener != null) {
+            classListener.stopTimer();
+        }
+
         if (blueJ != null) {
             blueJ.removeCompileListener(compilationListener);
             blueJ.removeInvocationFinishedListener(executionListener);
+            blueJ.removePackageListener(projectListener);
+            blueJ.removeClassListener(classListener);
         }
         repository.endSession();
 
