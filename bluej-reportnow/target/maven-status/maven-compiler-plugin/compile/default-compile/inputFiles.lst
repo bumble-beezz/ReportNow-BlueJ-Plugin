@@ -1,14 +1,17 @@
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\export\PdfExportStrategy.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\model\ProjectEvent.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\ReportNowExtension.java
+C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\EditorPackageListener.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\factory\TelemetryEventFactory.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\repository\TelemetryRepository.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\export\JsonExportStrategy.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\CompilationListener.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\ClassLifecycleListener.java
+C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\EditorInteractionListener.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\export\ExportContext.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\model\ClassEvent.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\export\ExportStrategy.java
+C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\EditorInteractionManager.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\ProjectLifecycleListener.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\export\ExportException.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\config\StudentIdManager.java
@@ -17,4 +20,5 @@ C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\co
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\model\TelemetryEvent.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\parser\CompilationErrorParser.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\model\ExecutionEvent.java
+C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\listener\EditorInteractionTracker.java
 C:\Users\Rosey\Downloads\ReportNow-BlueJ-Plugin\bluej-reportnow\src\main\java\com\group22\reportnow\model\CompilationEvent.java

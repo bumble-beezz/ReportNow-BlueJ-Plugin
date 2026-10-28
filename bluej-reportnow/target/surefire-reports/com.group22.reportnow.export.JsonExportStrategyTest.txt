@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.group22.reportnow.export.JsonExportStrategyTest
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.914 s -- in com.group22.reportnow.export.JsonExportStrategyTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.943 s -- in com.group22.reportnow.export.JsonExportStrategyTest
