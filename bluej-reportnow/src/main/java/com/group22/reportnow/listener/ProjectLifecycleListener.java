@@ -109,7 +109,7 @@ public class ProjectLifecycleListener implements PackageListener {
         openProjects.keySet().retainAll(currentOpenProjects.keySet());
     }
 
-    private synchronized void checkProjects(){
+    public synchronized void checkProjects(){
         for(String path : new ConcurrentHashMap<>(projects).keySet()){
             File projectFolder = new File(path);
             if(!projectFolder.exists()){

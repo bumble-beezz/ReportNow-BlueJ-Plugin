@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.List;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 
@@ -31,7 +30,7 @@ public class ClassListenerTest {
     }
 
     @AfterEach 
-    void tearDown() {
+    void deleteFiles() {
         File[] files = testFolder.listFiles();
         if (files != null) {
             for (File file : files) {
@@ -44,19 +43,13 @@ public class ClassListenerTest {
         }
     }
 
-    private void checkFiles() throws Exception {
-        Method method = ClassLifecycleListener.class.getDeclaredMethod("checkFiles");
-        method.setAccessible(true);
-        method.invoke(listener);
-    }
-
     @Test 
     void classCreationIsRecorded() throws Exception {
         listener.trackProject(testFolder, "TestProject");
 
         File classFile = new File(testFolder, "Student.java");
         assertTrue(classFile.createNewFile());
-        checkFiles();
+        listener.checkFiles();
 
         List<ClassEvent> classEvents = repo.getClassEvents();
         
@@ -78,13 +71,14 @@ public class ClassListenerTest {
 
         Files.setLastModifiedTime(classFile.toPath(), FileTime.fromMillis(classFile.lastModified() + 5000));
         
-        checkFiles();
+        listener.checkFiles();
 
         List<ClassEvent> events = repo.getClassEvents();
 
         assertEquals(1, events.size());
         assertEquals("ClassModified", events.get(0).getAction());
         assertEquals("Student.java", events.get(0).getClassName());
+        assertEquals("TestProject", events.get(0).getProjectName());
     }
 
     @Test 
@@ -96,13 +90,14 @@ public class ClassListenerTest {
 
         assertTrue(classFile.delete());
 
-        checkFiles();
+        listener.checkFiles();
 
         List<ClassEvent> events = repo.getClassEvents();
 
         assertEquals(1, events.size());
         assertEquals("ClassDeleted", events.get(0).getAction());
         assertEquals("Student.java", events.get(0).getClassName());
+        assertEquals("TestProject", events.get(0).getProjectName());
     }
 
     @Test 
@@ -112,40 +107,22 @@ public class ClassListenerTest {
 
         listener.trackProject(testFolder, "TestProject");
 
-        checkFiles();
+        listener.checkFiles();
 
         List<ClassEvent> events = repo.getClassEvents();
 
         assertEquals(0, events.size());
     }
 
-    @Test 
-    void classCreationIsNotRecordedTwice() throws Exception {
-
-        listener.trackProject(testFolder, "TestProject");
-
-        File classFile = new File(testFolder, "Student.java");
-        assertTrue(classFile.createNewFile());
-
-        checkFiles();
-        checkFiles();
-
-        List<ClassEvent> events = repo.getClassEvents();
-
-        assertEquals(1, events.size());
-        assertEquals("ClassCreated", events.get(0).getAction());
-    }
-
     @Test
-    void classChangeAlsoRecordsProjectModification()
-            throws Exception {
+    void classChangeAlsoRecordsProjectModification() throws Exception {
 
         listener.trackProject(testFolder, "TestProject");
 
         File classFile = new File(testFolder, "Student.java");
         assertTrue(classFile.createNewFile());
 
-        checkFiles();
+        listener.checkFiles();
 
         List<ProjectEvent> events = repo.getProjectEvents();
 

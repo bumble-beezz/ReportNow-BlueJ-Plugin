@@ -39,5 +39,20 @@ public class ProjectEventTest {
         assertEquals("ProjectDeleted", event.getAction());
         assertEquals("TestProject", event.getProjectName());
     }
-    
+
+    @Test 
+    void projectOpeningEventStoresCorrectDetails(){
+        ProjectEvent event = new ProjectEvent(4000L, "ProjectOpened", "TestProject");
+
+        assertEquals("project", event.getType());
+        assertEquals("ProjectOpened", event.getAction());
+        assertEquals("TestProject", event.getProjectName());
+    }
+
+    @Test 
+    void projectEventStoresCorrectTimestamp(){
+        ProjectEvent event = new ProjectEvent(5000L, "ProjectCreated", "TestProject");
+
+        assertEquals(5000L, event.getTimestampMs());
+    }
 }

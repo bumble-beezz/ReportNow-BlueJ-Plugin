@@ -43,4 +43,16 @@ public class ClassEventTest {
         assertEquals("TestProject", event.getProjectName());
     }
 
+    @Test 
+    void classEventStoresCorrectTimestamp(){
+        ClassEvent event = new ClassEvent(4000L,"ClassCreated", "Test.java", "TestProject");
+        assertEquals(4000L, event.getTimestampMs());
+    }
+
+    @Test 
+    void classEventStoresCorrectNames(){
+        ClassEvent event = new ClassEvent(5000L, "ClassCreated", "Test.java", "TestProject");
+        assertEquals("Test.java", event.getClassName());
+        assertEquals("TestProject", event.getProjectName());
+    }
 }

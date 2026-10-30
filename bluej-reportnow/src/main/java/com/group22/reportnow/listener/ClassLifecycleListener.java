@@ -128,7 +128,7 @@ public class ClassLifecycleListener implements ClassListener {
         }
     }
 
-    private synchronized void checkFiles(){
+    public synchronized void checkFiles(){
         for(String path : projects.keySet()){
             File folder = new File(path);
             if(!folder.exists()){

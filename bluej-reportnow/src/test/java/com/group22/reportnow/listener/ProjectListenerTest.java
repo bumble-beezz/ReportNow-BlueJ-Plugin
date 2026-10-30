@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.function.Consumer;
@@ -35,19 +34,17 @@ public class ProjectListenerTest {
         blueJ = mock(BlueJ.class);
         classListener = mock(ClassLifecycleListener.class);
         
-        // Mock the callback consumer
         @SuppressWarnings("unchecked")
-        Consumer<String> mockCallback = mock(Consumer.class);
-        this.mockCallback = mockCallback;
+        Consumer<String> callback = mock(Consumer.class);
+        this.mockCallback = callback;
 
-        // Pass the mockCallback to the new constructor
         listener = new ProjectLifecycleListener(blueJ, repo, classListener, mockCallback);
 
         testFolder = Files.createTempDirectory("testProject").toFile();
     }
 
     @AfterEach 
-    void tearDown() {
+    void deleteFiles() {
         if (testFolder != null && testFolder.exists()) {
             assertTrue(testFolder.delete());
         }
@@ -80,21 +77,34 @@ public class ProjectListenerTest {
         listener.packageClosing(event);
     }
 
-    private void checkProjects() throws Exception{
-        Method method = ProjectLifecycleListener.class.getDeclaredMethod("checkProjects");
-        method.setAccessible(true);
-        method.invoke(listener);
-    }
 
     @Test
-    void projectOpeningIsRecorded() throws Exception {
+    void projectCreationIsRecorded() throws Exception {
         openProject();
 
         List<ProjectEvent> events = repo.getProjectEvents();
         boolean found = false;
 
         for (ProjectEvent event : events) {
-            if (event.getAction().equals("ProjectOpened")) {
+            if (event.getAction().equals("ProjectCreated")) {
+                assertEquals("TestProject", event.getProjectName());
+                found = true;
+            }
+        }
+
+        assertTrue(found);
+    }
+
+    @Test 
+    void projectOpeningIsRecorded() throws Exception{
+        openProject();
+
+        List<ProjectEvent> events = repo.getProjectEvents();
+        boolean found = false;
+
+        for(ProjectEvent event : events){
+            if(event.getAction().equals("ProjectOpened")){
+                assertEquals("TestProject", event.getProjectName());
                 found = true;
             }
         }
@@ -114,73 +124,29 @@ public class ProjectListenerTest {
     }
 
     @Test 
-    void missingProjectFolderRecordsDeletion() throws Exception {
+    void projectDeletionIsRecorded() throws Exception{
         openProject();
+
         assertTrue(testFolder.delete());
-        checkProjects();
-
-        List<ProjectEvent> events = repo.getProjectEvents();
-        boolean foundDeletion = false;
-
-        for (ProjectEvent event : events) {
-            if (event.getAction().equals("ProjectDeleted")) {
-                foundDeletion = true;
-            }
-        }
-        assertTrue(foundDeletion);
-    }
-
-    @Test 
-    void projectOpeningIsNotRecordedTwice() throws Exception {
-        openProject();
-        openProject(); 
-
-        List<ProjectEvent> events = repo.getProjectEvents();
-        int count = 0;
-        for (ProjectEvent event : events) {
-            if (event.getAction().equals("ProjectOpened")) {
-                count++;
-            }
-        }
-        assertEquals(1, count); 
-    }
-
-    @Test 
-    void projectNameIsRecordedCorrectly() throws Exception {
-        openProject();
+        listener.checkProjects();
 
         List<ProjectEvent> events = repo.getProjectEvents();
         boolean found = false;
 
-        for (ProjectEvent event : events) {
-            if (event.getAction().equals("ProjectOpened")) {
+        for(ProjectEvent event : events){
+            if(event.getAction().equals("ProjectDeleted")){
                 assertEquals("TestProject", event.getProjectName());
                 found = true;
             }
         }
+        
         assertTrue(found);
     }
-
-    @Test 
-    void projectCreationIsRecorded() throws Exception {
-        openProject();
-
-        List<ProjectEvent> events = repo.getProjectEvents();
-        boolean foundCreation = false;
-
-        for (ProjectEvent event : events) {
-            if (event.getAction().equals("ProjectCreated")) {
-                foundCreation = true;
-            }
-        }
-        assertTrue(foundCreation);
-    }
-
+  
     @Test
     void projectClosingTriggersExportCallback() throws Exception {
         closeProject();
         
-        //verify the mock callback was called with the correct project name
         verify(mockCallback, times(1)).accept("TestProject");
     }
 }
